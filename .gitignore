@@ -1,0 +1,23 @@
+# Visual Studio / MSBuild
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Backup / Temporary
+shared_release/
+scratch/
+temp_rmskin.zip
+rmskin_build/
+*.bak
+*.tmp
