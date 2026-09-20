@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
@@ -16,15 +17,113 @@ namespace PluginClipboard
 		{
 			{
 				DataFormats.Bitmap,
-				(DataObject o) => "[IMG] " + o.GetImage().Size
+				(DataObject o) =>
+				{
+					if (o == null)
+					{
+						return null;
+					}
+
+					try
+					{
+						Image img = o.GetImage();
+						if (img != null)
+						{
+							return "[IMG] " + img.Size;
+						}
+					}
+					catch
+					{
+						// Catch GDI+ / format decoding errors gracefully
+					}
+
+					return null;
+				}
 			},
 			{
 				DataFormats.FileDrop,
-				(DataObject o) => "[FILE] " + Path.GetFileName(o.GetFileDropList()[0])
+				(DataObject o) =>
+				{
+					if (o == null)
+					{
+						return null;
+					}
+
+					try
+					{
+						var fileList = o.GetFileDropList();
+						if (fileList != null && fileList.Count > 0 && !string.IsNullOrEmpty(fileList[0]))
+						{
+							return "[FILE] " + Path.GetFileName(fileList[0]);
+						}
+					}
+					catch
+					{
+						// Catch path parsing / file drop decoding errors gracefully
+					}
+
+					return null;
+				}
 			},
 			{
 				DataFormats.Text,
-				(DataObject o) => o.GetText()
+				(DataObject o) =>
+				{
+					if (o == null)
+					{
+						return null;
+					}
+
+					try
+					{
+						return o.GetText();
+					}
+					catch
+					{
+						// Catch text decoding errors gracefully
+						return null;
+					}
+				}
+			},
+			{
+				DataFormats.UnicodeText,
+				(DataObject o) =>
+				{
+					if (o == null)
+					{
+						return null;
+					}
+
+					try
+					{
+						return o.GetText();
+					}
+					catch
+					{
+						// Catch text decoding errors gracefully
+						return null;
+					}
+				}
+			},
+			{
+				DataFormats.StringFormat,
+				(DataObject o) =>
+				{
+					if (o == null)
+					{
+						return null;
+					}
+
+					try
+					{
+						return o.GetText();
+					}
+					catch
+					{
+						// Catch text decoding errors gracefully
+						return null;
+					}
+				}
 			}
 		};
 
@@ -38,20 +137,63 @@ namespace PluginClipboard
 		internal ClipboardData(IDataObject dataObject)
 		{
 			_dataObject = new DataObject();
-			string[] formats = dataObject.GetFormats();
-			foreach (string format in formats)
+
+			if (dataObject != null)
 			{
-				string[] buggyFormats = _buggyFormats;
-				Predicate<string> match = (string s) => s == format;
-				if (!Array.Exists(buggyFormats, match))
+				try
 				{
-					_dataObject.SetData(format, dataObject.GetData(format));
-					if (_convertors.ContainsKey(format))
+					string[] formats = dataObject.GetFormats();
+					if (formats != null)
 					{
-						_text = _convertors[format](_dataObject);
+						foreach (string format in formats)
+						{
+							if (string.IsNullOrEmpty(format))
+							{
+								continue;
+							}
+
+							string[] buggyFormats = _buggyFormats;
+							Predicate<string> match = (string s) => s == format;
+							if (!Array.Exists(buggyFormats, match))
+							{
+								try
+								{
+									object data = dataObject.GetData(format);
+									if (data != null)
+									{
+										_dataObject.SetData(format, data);
+									}
+								}
+								catch
+								{
+									// Some clipboard formats fail when reading raw data; ignore and continue
+								}
+
+								if (_convertors.ContainsKey(format))
+								{
+									try
+									{
+										string converted = _convertors[format](_dataObject);
+										if (!string.IsNullOrEmpty(converted))
+										{
+											_text = converted;
+										}
+									}
+									catch
+									{
+										// Fail gracefully if converter throws
+									}
+								}
+							}
+						}
 					}
 				}
+				catch
+				{
+					// Catch any clipboard format enumeration exceptions
+				}
 			}
+
 			if (_text == null)
 			{
 				_text = "[DATA] " + DateTime.Now.ToString("T");
@@ -60,12 +202,22 @@ namespace PluginClipboard
 
 		internal void SetToClipboard()
 		{
-			Clipboard.SetDataObject(_dataObject);
+			if (_dataObject != null)
+			{
+				try
+				{
+					Clipboard.SetDataObject(_dataObject);
+				}
+				catch
+				{
+					// Clipboard may be temporarily locked by another application
+				}
+			}
 		}
 
 		public override string ToString()
 		{
-			return _text;
+			return _text ?? string.Empty;
 		}
 	}
 }

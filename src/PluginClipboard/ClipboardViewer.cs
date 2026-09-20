@@ -28,13 +28,27 @@ namespace PluginClipboard
 			IsStarted = false;
 			if (_mInstance != null && _mInstance.IsHandleCreated)
 			{
-				_mInstance.Invoke(new MethodInvoker(_mInstance.Close));
+				try
+				{
+					_mInstance.Invoke(new MethodInvoker(_mInstance.Close));
+				}
+				catch
+				{
+					// Ignore exception on shutdown
+				}
 			}
 		}
 
 		private static void RunForm()
 		{
-			Application.Run(new ClipboardViewer());
+			try
+			{
+				Application.Run(new ClipboardViewer());
+			}
+			catch
+			{
+				// Prevent application termination on unhandled viewer exceptions
+			}
 		}
 
 		protected override void OnLoad(EventArgs e)
@@ -42,7 +56,14 @@ namespace PluginClipboard
 			base.Visible = false;
 			base.ShowInTaskbar = false;
 			_mInstance = this;
-			_clipboardViewer = NativeMethods.SetClipboardViewer(base.Handle);
+			try
+			{
+				_clipboardViewer = NativeMethods.SetClipboardViewer(base.Handle);
+			}
+			catch
+			{
+				// Ignore P/Invoke error
+			}
 			base.OnLoad(e);
 		}
 
@@ -50,7 +71,14 @@ namespace PluginClipboard
 		{
 			if (disposing)
 			{
-				NativeMethods.ChangeClipboardChain(base.Handle, _clipboardViewer);
+				try
+				{
+					NativeMethods.ChangeClipboardChain(base.Handle, _clipboardViewer);
+				}
+				catch
+				{
+					// Ignore P/Invoke error
+				}
 			}
 			base.Dispose(disposing);
 		}
@@ -60,20 +88,50 @@ namespace PluginClipboard
 			switch (m.Msg)
 			{
 				case WM_DRAWCLIPBOARD:
-					ClipboardData clipboardData = new ClipboardData(Clipboard.GetDataObject());
-					ClipboardHandler.Current.AddHistoryItem(clipboardData);
-					NativeMethods.SendMessage(_clipboardViewer, m.Msg, m.WParam, m.LParam);
+				{
+					try
+					{
+						IDataObject dataObject = Clipboard.GetDataObject();
+						if (dataObject != null)
+						{
+							ClipboardData clipboardData = new ClipboardData(dataObject);
+							ClipboardHandler.Current.AddHistoryItem(clipboardData);
+						}
+					}
+					catch
+					{
+						// Catch any unexpected clipboard access errors (e.g. CLIPBRD_E_CANT_OPEN)
+					}
+
+					try
+					{
+						NativeMethods.SendMessage(_clipboardViewer, m.Msg, m.WParam, m.LParam);
+					}
+					catch
+					{
+						// Ignore SendMessage failure
+					}
 					break;
+				}
 				case WM_CHANGECBCHAIN:
+				{
 					if (m.WParam == _clipboardViewer)
 					{
 						_clipboardViewer = m.LParam;
 					}
 					else
 					{
-						NativeMethods.SendMessage(_clipboardViewer, m.Msg, m.WParam, m.LParam);
+						try
+						{
+							NativeMethods.SendMessage(_clipboardViewer, m.Msg, m.WParam, m.LParam);
+						}
+						catch
+						{
+							// Ignore SendMessage failure
+						}
 					}
 					break;
+				}
 				default:
 					base.WndProc(ref m);
 					break;
