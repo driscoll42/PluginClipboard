@@ -46,64 +46,46 @@ $rel64 = Join-Path $releaseDir "64bit"
     }
 }
 
-$assemblyNames = @("PluginClipboard", "PluginClipboard2")
+$asmName = "PluginClipboard"
 
-foreach ($asmName in $assemblyNames) {
-    Write-Host "`n================ BUILDING $asmName (x64) ================" -ForegroundColor Green
-    $buildArgsX64 = @(
-        $projFile,
-        "/p:Configuration=$Configuration",
-        "/p:Platform=x64",
-        "/p:AssemblyName=$asmName",
-        "/t:Rebuild",
-        "/p:DllExportSdkPath=$sdkPath",
-        "/v:m"
-    )
-    & $msbuild $buildArgsX64
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "x64 build of $asmName failed with exit code $LASTEXITCODE"
-        exit $LASTEXITCODE
-    }
-
-    $x64Out = Join-Path $srcDir "bin\x64\$Configuration\$asmName.dll"
-    Copy-Item -Path $x64Out -Destination (Join-Path $relX64 "$asmName.dll") -Force
-    Copy-Item -Path $x64Out -Destination (Join-Path $rel64 "$asmName.dll") -Force
-
-    if ($asmName -eq "PluginClipboard") {
-        $skin64 = Join-Path $workspaceRoot "skin_source\Plugins\64bit"
-        if (Test-Path $skin64) {
-            Copy-Item -Path $x64Out -Destination (Join-Path $skin64 "PluginClipboard.dll") -Force
-        }
-        Copy-Item -Path $x64Out -Destination (Join-Path $workspaceRoot "PluginClipboard_64.dll") -Force
-    }
-
-    Write-Host "`n================ BUILDING $asmName (x86) ================" -ForegroundColor Green
-    $buildArgsX86 = @(
-        $projFile,
-        "/p:Configuration=$Configuration",
-        "/p:Platform=x86",
-        "/p:AssemblyName=$asmName",
-        "/t:Rebuild",
-        "/p:DllExportSdkPath=$sdkPath",
-        "/v:m"
-    )
-    & $msbuild $buildArgsX86
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "x86 build of $asmName failed with exit code $LASTEXITCODE"
-        exit $LASTEXITCODE
-    }
-
-    $x86Out = Join-Path $srcDir "bin\x86\$Configuration\$asmName.dll"
-    Copy-Item -Path $x86Out -Destination (Join-Path $relX86 "$asmName.dll") -Force
-    Copy-Item -Path $x86Out -Destination (Join-Path $rel32 "$asmName.dll") -Force
-
-    if ($asmName -eq "PluginClipboard") {
-        $skin32 = Join-Path $workspaceRoot "skin_source\Plugins\32bit"
-        if (Test-Path $skin32) {
-            Copy-Item -Path $x86Out -Destination (Join-Path $skin32 "PluginClipboard.dll") -Force
-        }
-        Copy-Item -Path $x86Out -Destination (Join-Path $workspaceRoot "PluginClipboard_32.dll") -Force
-    }
+Write-Host "`n================ BUILDING $asmName (x64) ================" -ForegroundColor Green
+$buildArgsX64 = @(
+    $projFile,
+    "/p:Configuration=$Configuration",
+    "/p:Platform=x64",
+    "/p:AssemblyName=$asmName",
+    "/t:Rebuild",
+    "/p:DllExportSdkPath=$sdkPath",
+    "/v:m"
+)
+& $msbuild $buildArgsX64
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "x64 build of $asmName failed with exit code $LASTEXITCODE"
+    exit $LASTEXITCODE
 }
+
+$x64Out = Join-Path $srcDir "bin\x64\$Configuration\$asmName.dll"
+Copy-Item -Path $x64Out -Destination (Join-Path $relX64 "$asmName.dll") -Force
+Copy-Item -Path $x64Out -Destination (Join-Path $rel64 "$asmName.dll") -Force
+
+Write-Host "`n================ BUILDING $asmName (x86) ================" -ForegroundColor Green
+$buildArgsX86 = @(
+    $projFile,
+    "/p:Configuration=$Configuration",
+    "/p:Platform=x86",
+    "/p:AssemblyName=$asmName",
+    "/t:Rebuild",
+    "/p:DllExportSdkPath=$sdkPath",
+    "/v:m"
+)
+& $msbuild $buildArgsX86
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "x86 build of $asmName failed with exit code $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+$x86Out = Join-Path $srcDir "bin\x86\$Configuration\$asmName.dll"
+Copy-Item -Path $x86Out -Destination (Join-Path $relX86 "$asmName.dll") -Force
+Copy-Item -Path $x86Out -Destination (Join-Path $rel32 "$asmName.dll") -Force
 
 Write-Host "`n================ BUILD COMPLETED SUCCESSFULLY ================" -ForegroundColor Cyan

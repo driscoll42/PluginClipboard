@@ -47,18 +47,12 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 
 ---
 
-## Deliverables & Packages
+## Deliverables
 
-1. **Plugin Binaries Package (`PluginClipboard_v1.0.1.0.zip` / `Release/`)**:
-   - `x64/PluginClipboard.dll` (64-bit native C-exports, FileVersion 1.0.1.0)
-   - `x86/PluginClipboard.dll` (32-bit native C-exports, FileVersion 1.0.1.0)
-   - Ideal for upstream maintainers who want to bundle the plugin DLLs directly without including a skin.
-
-2. **Original Gadget Patch RMSKIN (`Clipboard.Meter.-.Gadgets.Patch_7.4.0.rmskin`)**:
-   - Ready-to-install Rainmeter skin package combining the 100% original skin files from SilverAzide with the patched 1.0.1.0 plugin DLLs.
-
-3. **Developer Submission Package (`PluginClipboard_Submission_Package.zip`)**:
-   - Contains clean `src/`, `packages/`, `build.ps1`, `Release/`, and documentation.
+- **Plugin Binaries (`Release/`)**:
+  - `Release/x64/PluginClipboard.dll` (64-bit native C-exports, FileVersion 1.0.1.0)
+  - `Release/x86/PluginClipboard.dll` (32-bit native C-exports, FileVersion 1.0.1.0)
+  - `Release/PluginClipboard_v1.0.1.0.zip` (standalone archive containing both DLLs and documentation)
 
 ---
 
@@ -78,9 +72,4 @@ Both 32-bit and 64-bit binaries export the standard 6 Rainmeter plugin entry poi
 To build the plugin DLLs from source:
 ```powershell
 .\build.ps1
-```
-
-To build all distribution packages:
-```powershell
-python package_rmskin.py
 ```

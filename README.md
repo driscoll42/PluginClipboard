@@ -9,23 +9,22 @@ A patched and modernized build of the Rainmeter `PluginClipboard` plugin (origin
 - **Thread & Lifecycle Safety**: Reference counts active measures so the hidden WinForms message pump stays open until all skins unload.
 - **Version Bump (1.0.1.0)**: Allows Rainmeter's Skin Packager and Installer to smoothly upgrade older 1.0.0.0 installations.
 
-## Releases & Downloads
+## Binaries
 
-- `Release/PluginClipboard_v1.0.1.0.zip`: Standalone 32-bit and 64-bit DLLs for upstream maintainers.
-- `Clipboard.Meter.-.Gadgets.Patch_7.4.0.rmskin`: Complete skin package bundled with the original Gadgets skin assets and the new 1.0.1.0 plugin DLLs.
-- `PluginClipboard_Submission_Package.zip`: Complete developer submission archive (sources, dependencies, build scripts, and binaries).
+Precompiled binaries are located in the `Release/` directory:
+- `Release/x64/PluginClipboard.dll` (64-bit, v1.0.1.0)
+- `Release/x86/PluginClipboard.dll` (32-bit, v1.0.1.0)
+- `Release/PluginClipboard_v1.0.1.0.zip` (standalone archive containing both DLLs)
 
 ## Building from Source
 
-Requirements:
-- Windows with .NET Framework 4.5+ and Windows SDK NETFX Tools (`ildasm.exe`).
+### Requirements
+- Windows with .NET Framework 4.5+
+- Windows SDK NETFX Tools (`ildasm.exe` - included with Visual Studio or Windows SDK)
 
-Run the build script:
+### Build Command
+Run the build script in PowerShell:
 ```powershell
 .\build.ps1
 ```
-
-Generate the release packages:
-```powershell
-python package_rmskin.py
-```
+This compiles both 32-bit (x86) and 64-bit (x64) binaries with unmanaged entry point exports and outputs them to the `Release/` directory.
