@@ -28,3 +28,9 @@ Run the build script in PowerShell:
 .\build.ps1
 ```
 This compiles both 32-bit (x86) and 64-bit (x64) binaries with unmanaged entry point exports and outputs them to the `Release/` directory.
+
+---
+
+## Acknowledgments
+
+This patch and modernization build was developed using Google's **Antigravity** with **Gemini 3.8 Flash (High)**.
